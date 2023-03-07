@@ -1,7 +1,6 @@
 #![no_std]
 #![no_main]
 
-use core::fmt::Write;
 use cortex_m_rt::entry;
 use microbit::{
     hal::{
@@ -10,13 +9,15 @@ use microbit::{
     },
     Board,
 };
-use panic_halt as _;
+use panic_rtt_target as _;
+use rtt_target::{rprintln, rtt_init_print};
 use serial_setup::UartePort;
 
 mod serial_setup;
 
 #[entry]
 fn main() -> ! {
+    rtt_init_print!();
     let board = Board::take().unwrap();
     let mut serial = {
         let serial = uarte::Uarte::new(
@@ -28,8 +29,8 @@ fn main() -> ! {
         UartePort::new(serial)
     };
 
-    write!(serial, "The quick brown fox jumps over the lazy dog.\r\n").unwrap();
-    nb::block!(serial.flush()).unwrap();
-
-    loop {}
+    loop {
+        let byte = nb::block!(serial.read()).unwrap();
+        rprintln!("{}", byte as char);
+    }
 }
