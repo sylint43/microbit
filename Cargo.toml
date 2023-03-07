@@ -3,6 +3,7 @@ members = [
   "src/led-roulette",
   "src/uart",
   "src/i2c",
+  "src/led-compass",
 ]
 
 [profile.release]
