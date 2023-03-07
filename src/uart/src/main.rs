@@ -9,15 +9,13 @@ use microbit::{
     },
     Board,
 };
-use panic_rtt_target as _;
-use rtt_target::{rprintln, rtt_init_print};
+use panic_halt as _;
 use serial_setup::UartePort;
 
 mod serial_setup;
 
 #[entry]
 fn main() -> ! {
-    rtt_init_print!();
     let board = Board::take().unwrap();
     let mut serial = {
         let serial = uarte::Uarte::new(
@@ -31,6 +29,7 @@ fn main() -> ! {
 
     loop {
         let byte = nb::block!(serial.read()).unwrap();
-        rprintln!("{}", byte as char);
+        nb::block!(serial.write(byte)).unwrap();
+        nb::block!(serial.flush()).unwrap();
     }
 }
