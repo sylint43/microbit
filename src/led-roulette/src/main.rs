@@ -14,27 +14,41 @@ fn main() -> ! {
     let board = Board::take().unwrap();
     let mut timer = Timer::new(board.TIMER0);
     let mut display = Display::new(board.display_pins);
-    let mut leds = [
+    let leds = [
         [0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0],
     ];
-    let mut current_index = (0, 0);
+    let led_indexes: [(usize, usize); 16] = [
+        (0, 0),
+        (0, 1),
+        (0, 2),
+        (0, 3),
+        (0, 4),
+        (1, 4),
+        (2, 4),
+        (3, 4),
+        (4, 4),
+        (4, 3),
+        (4, 2),
+        (4, 1),
+        (4, 0),
+        (3, 0),
+        (2, 0),
+        (1, 0),
+    ];
 
-    loop {
-        {
-            leds[current_index.0][current_index.1] = 0;
-            current_index = match current_index {
-                (row, col) if row == 0 && col < 4 => (row, col + 1),
-                (row, col) if row < 4 && col == 4 => (row + 1, col),
-                (row, col) if row == 4 && col > 0 => (row, col - 1),
-                (row, col) if row <= 4 && col == 0 => (row - 1, col),
-                (_, _) => unreachable!(),
-            };
-            leds[current_index.0][current_index.1] = 1;
-        }
-        display.show(&mut timer, leds, 30);
+    let led_displays = led_indexes.iter().map(|(row, col)| {
+        let mut leds = leds;
+        leds[*row][*col] = 1;
+        leds
+    });
+
+    for leds_display in led_displays.cycle() {
+        display.show(&mut timer, leds_display, 30);
     }
+
+    loop {}
 }
