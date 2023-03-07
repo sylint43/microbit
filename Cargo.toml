@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "src/led-roulette",
+  "src/uart",
 ]
 
 [profile.release]
