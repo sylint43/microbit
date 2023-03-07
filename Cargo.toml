@@ -4,6 +4,7 @@ members = [
   "src/uart",
   "src/i2c",
   "src/led-compass",
+  "src/message",
 ]
 
 [profile.release]
