@@ -2,6 +2,7 @@
 members = [
   "src/led-roulette",
   "src/uart",
+  "src/i2c",
 ]
 
 [profile.release]
