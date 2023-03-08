@@ -11,7 +11,7 @@ mod app {
 
     use microbit::{
         board::Board,
-        display::nonblocking::{Display, Frame, MicrobitFrame},
+        display::nonblocking::{Display, Frame, GreyscaleImage, MicrobitFrame},
         hal::{
             clocks::Clocks,
             rtc::{Rtc, RtcInterrupt},
@@ -21,7 +21,23 @@ mod app {
     use microbit_text::scrolling::Animate;
     use microbit_text::scrolling_text::ScrollingStaticText;
 
-    const MESSAGE: &[u8] = b"Willow is a cutie :)";
+    const MESSAGE: &[u8] = b"Willow is a cutie";
+
+    pub enum State {
+        Message,
+        Heart,
+    }
+
+    fn heart_image(brightness: u8) -> GreyscaleImage {
+        let b = brightness;
+        GreyscaleImage::new(&[
+            [0, b, 0, b, 0],
+            [b, b, b, b, b],
+            [b, b, b, b, b],
+            [0, b, b, b, 0],
+            [0, 0, b, 0, 0],
+        ])
+    }
 
     #[shared]
     struct Shared {
@@ -71,19 +87,46 @@ mod app {
 
     #[task(binds = RTC0, priority = 1, shared = [display],
            local = [anim_timer, scroller,
-                    frame: MicrobitFrame = MicrobitFrame::default()])]
+                    frame: MicrobitFrame = MicrobitFrame::default(),
+                    step: u8 = 0,
+                    state: State = State::Message])]
     fn rtc0(cx: rtc0::Context) {
         let mut shared = cx.shared;
         let local = cx.local;
         local.anim_timer.reset_event(RtcInterrupt::Tick);
-        if !local.scroller.is_finished() {
-            local.scroller.tick();
-            local.frame.set(local.scroller);
-            shared.display.lock(|display| {
-                display.show_frame(local.frame);
-            });
-        } else {
-            local.scroller.reset();
+
+        match local.state {
+            State::Message => {
+                if !local.scroller.is_finished() {
+                    local.scroller.tick();
+                    local.frame.set(local.scroller);
+                    shared.display.lock(|display| {
+                        display.show_frame(local.frame);
+                    });
+                } else {
+                    *local.state = State::Heart;
+                }
+            }
+            State::Heart => {
+                let brightness = match *local.step {
+                    0..=8 => *local.step,
+                    9..=18 => 18 - *local.step,
+                    _ => unreachable!(),
+                };
+
+                local.frame.set(&heart_image(brightness));
+
+                shared.display.lock(|display| {
+                    display.show_frame(local.frame);
+                });
+
+                *local.step += 1;
+                if *local.step == 19 {
+                    *local.step = 0;
+                    *local.state = State::Message;
+                    local.scroller.reset();
+                }
+            }
         }
     }
 }
