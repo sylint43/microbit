@@ -21,7 +21,7 @@ mod app {
     use microbit_text::scrolling::Animate;
     use microbit_text::scrolling_text::ScrollingStaticText;
 
-    const MESSAGE: &[u8] = b"Willow is a cutie";
+    const MESSAGE: &[u8] = b"WILLOW IS A CUTIE";
 
     pub enum State {
         Message,
@@ -110,7 +110,8 @@ mod app {
             State::Heart => {
                 let brightness = match *local.step {
                     0..=8 => *local.step,
-                    9..=18 => 18 - *local.step,
+                    9..=17 => 9,
+                    18..=26 => 26 - *local.step,
                     _ => unreachable!(),
                 };
 
@@ -121,7 +122,7 @@ mod app {
                 });
 
                 *local.step += 1;
-                if *local.step == 19 {
+                if *local.step == 27 {
                     *local.step = 0;
                     *local.state = State::Message;
                     local.scroller.reset();
